@@ -1,22 +1,16 @@
-from functools import partial
-from typing import Any, Union
+from typing import Union
 
-from django.forms import model_to_dict
-from django.shortcuts import get_list_or_404, get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from rest_framework import decorators, exceptions
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.note.models import Note
+from apps.note import serializers
+from apps.note.models import Note, Profile
+from apps.note.serializers import NoteSerializer, ProfileSerializer
+
 
 # Create your views here.
-"""
-Apis without pk/id values
-"""
-
-note_dict = partial(model_to_dict, fields=None, exclude=None)
-
-
 class NoteCRUD:
     @staticmethod
     def create(data: dict):
@@ -26,21 +20,24 @@ class NoteCRUD:
             body: str,
             owner: int
         """
-        try:
-            data["owner_id"] = data.pop("owner")
-        except KeyError as e:
-            raise exceptions.APIException(
-                detail=f"Error field: `{e.args[0]}`",
-                code="invalid_key",
-            )
+        # try:
+        #     data["owner_id"] = data.pop("owner")
+        # except KeyError as e:
+        #     raise exceptions.APIException(
+        #         detail=f"Error field: `{e.args[0]}`",
+        #         code="invalid_key",
+        #     )
 
-        obj = Note.objects.create(**data)
+        # obj = Note.objects.create(**data)
         """
         Alternative:
         obj = Note(**data)
         obj.save()
         """
-        return note_dict(obj)
+        serializer = NoteSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return serializer.data
 
     @staticmethod
     def list():
@@ -56,10 +53,12 @@ class NoteCRUD:
         Notable method can be use against `all()`:
         `values()`, `values_list()`, `select_related()`
 
-        Note: use `select_related()` for query having relationshipß
+        Note: use `select_related()` for query having relationship
         """
-        qs = get_list_or_404(Note)
-        return (note_dict(_) for _ in qs)
+
+        qs = Note.objects.all()
+        serializer = NoteSerializer(qs, many=True)
+        return serializer.data
 
     @staticmethod
     def retrieve(pk: int):
@@ -74,21 +73,28 @@ class NoteCRUD:
         ```
         """
 
-        return get_object_or_404(Note, pk=pk)
+        obj = get_object_or_404(Note, pk=pk)
+        serializer = NoteSerializer(obj)
+        return serializer.data
 
     @staticmethod
     def update(pk: int, data: dict):
         obj = get_object_or_404(Note, pk=pk)
-        for k, v in data.items():
-            setattr(obj, k, v)
-        obj.save()
-        return obj
+        serializer = NoteSerializer(obj, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return serializer.data
 
     @staticmethod
-    def delete(pk: int, data: dict):
+    def delete(pk: int):
         obj = get_object_or_404(Note, pk=pk)
         obj.delete()
         return None
+
+
+"""
+Apis without pk/id values
+"""
 
 
 @decorators.api_view(["GET", "POST"])
@@ -98,11 +104,19 @@ def note_list(request: Request):
     if request.method == "GET":
         payload["data"] = NoteCRUD.list()
     if request.method == "POST":
+        print("?????", request.data)
         payload.update(
             data=NoteCRUD.create(request.data),
             status=201,
         )
     return Response(**payload)
+
+
+@decorators.api_view(["GET"])
+def user_notes(request: Request, pk: int):
+    obj = get_object_or_404(Profile, pk=pk)
+    serializer = ProfileSerializer(instance=obj)
+    return Response(serializer.data)
 
 
 """
