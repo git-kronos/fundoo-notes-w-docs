@@ -1,13 +1,15 @@
+from functools import wraps
 from typing import Union
 
 from django.shortcuts import get_object_or_404
-from rest_framework import decorators, exceptions
+from rest_framework import decorators
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.note import serializers
-from apps.note.models import Note, Profile
+from apps.note.models import Note
 from apps.note.serializers import NoteSerializer, ProfileSerializer
+from apps.utils.auth import JwtAuthentication
 
 
 # Create your views here.
@@ -97,25 +99,34 @@ Apis without pk/id values
 """
 
 
-@decorators.api_view(["GET", "POST"])
-def note_list(request: Request):
-    payload = {"status": 200, "data": None}
+def update_user_input(f):
+    @wraps(f)
+    def wrapper(request: Request, *a, **kw):
+        request.data["owner"] = request.user.id
+        return f(request, *a, **kw)
 
-    if request.method == "GET":
-        payload["data"] = NoteCRUD.list()
-    if request.method == "POST":
-        print("?????", request.data)
-        payload.update(
-            data=NoteCRUD.create(request.data),
-            status=201,
-        )
+    return wrapper
+
+
+@decorators.api_view(["GET", "POST"])
+@decorators.authentication_classes([JwtAuthentication])
+@update_user_input
+def note_list(request: Request) -> Response:
+    payload = {"status": 200, "data": None}
+    match request.method:
+        case "GET":
+            payload["data"] = NoteCRUD.list()
+        case "POST":
+            payload.update(data=NoteCRUD.create(request.data), status=201)
+        case _:
+            raise MethodNotAllowed()
     return Response(**payload)
 
 
 @decorators.api_view(["GET"])
-def user_notes(request: Request, pk: int):
-    obj = get_object_or_404(Profile, pk=pk)
-    serializer = ProfileSerializer(instance=obj)
+@decorators.authentication_classes([JwtAuthentication])
+def user_notes(request: Request) -> Response:
+    serializer = ProfileSerializer(instance=request.user)
     return Response(serializer.data)
 
 
@@ -125,22 +136,22 @@ Apis with pk/id values
 
 
 @decorators.api_view(["GET", "PUT", "DELETE"])
-def note_detail(request: Request, pk: Union[int, str]):
+@decorators.authentication_classes([JwtAuthentication])
+@update_user_input
+def note_detail(request: Request, pk: Union[int, str]) -> Response:
     payload = {"status": 200, "data": None}
 
-    # retrieve data
-    if request.method == "GET":
-        payload["data"] = NoteCRUD.retrieve(pk)
-
-    # update data
-    if request.method == "PUT":
-        payload.update(
-            data=NoteCRUD.update(pk, data=request.data),
-            status=202,
-        )
-
-    # delete data
-    if request.method == "DELETE":
-        payload.update(data=NoteCRUD.delete(pk), status=204)
+    match request.method:
+        case "GET":
+            # retrieve data
+            payload["data"] = NoteCRUD.retrieve(pk)
+        case "PUT":
+            # update data
+            payload.update(data=NoteCRUD.update(pk, data=request.data), status=202)
+        case "DELETE":
+            # delete data
+            payload.update(data=NoteCRUD.delete(pk), status=204)
+        case _:
+            raise MethodNotAllowed()
 
     return Response(**payload)

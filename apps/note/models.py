@@ -27,7 +27,7 @@ class Profile(User):
 class Note(models.Model):
     title = models.CharField(max_length=255)
     body = models.TextField()
-    owner = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "note"

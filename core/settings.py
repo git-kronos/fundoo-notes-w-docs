@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,8 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "rest_framework",
     "apps.note",
+    "apps.user",
 ]
 
 MIDDLEWARE = [
@@ -123,3 +126,12 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "user.User"
+
+PASSWORD_PATTERN = r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$"
+JWT_CONFIG = {
+    "key": SECRET_KEY,
+    "algorithms": ["HS256"],
+    "exp": timedelta(minutes=60),
+}
