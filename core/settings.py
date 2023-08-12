@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
+from drf_yasg import openapi
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-!v9lm!l8=0@u*p!+kcplxsj73j5z9gz&3li$13auc1mzn=hahh"
+SECRET_KEY = (
+    "django-insecure-!v9lm!l8=0@u*p!+kcplxsj73j5z9gz&3li$13auc1mzn=hahh"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "rest_framework",
+    "drf_yasg",
     "apps.note",
     "apps.user",
 ]
@@ -134,4 +139,16 @@ JWT_CONFIG = {
     "key": SECRET_KEY,
     "algorithms": ["HS256"],
     "exp": timedelta(minutes=60),
+}
+
+SWAGGER_SETTINGS = {
+    "USE_SESSION_AUTH": False,
+    "DEFAULT_INFO": openapi.Info(
+        title="Fundoo Note API",
+        default_version="v1",
+        description="A test project based on `Google Keep`'s bare minimum functionality for learing `django/djangorestframework`",
+    ),
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
+    },
 }

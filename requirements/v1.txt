@@ -1,3 +1,4 @@
-django
-djangorestframework
-PyJWT
+django==4.2.4
+djangorestframework==3.14.0
+PyJWT==2.8.0
+drf-yasg==1.21.7

@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
-from pyexpat import model
+from drf_yasg import openapi
 from rest_framework import serializers
 
-from apps.note.models import Note, Profile
+from apps.note.models import Note
 
 User = get_user_model()
 
@@ -16,6 +16,13 @@ End result will be enresult will be a serializer object.
 `serializer_object.data` carries model info in dict format
 
 """
+
+
+class NoteResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        swagger_schema_fields = {"title": "NoteOut"}
+        model = Note
+        fields = "__all__"
 
 
 class NoteSerializer(serializers.ModelSerializer):
@@ -34,6 +41,24 @@ class NoteSerializer(serializers.ModelSerializer):
     ```
     """
 
+    class Meta:
+        swagger_schema_fields = {
+            "type": openapi.TYPE_OBJECT,
+            "title": "Note",
+            "required": ["title", "body"],
+            "properties": {
+                "title": openapi.Schema(
+                    title="Email subject", type=openapi.TYPE_STRING
+                ),
+                "body": openapi.Schema(
+                    title="Email body", type=openapi.TYPE_STRING
+                ),
+            },
+        }
+        model = Note
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
     def validate_title(self, value):
         """
         method_name = validate_(field_name)
@@ -41,11 +66,6 @@ class NoteSerializer(serializers.ModelSerializer):
         if not isinstance(value, str):
             raise serializers.ValidationError("srt value")
         return value
-
-    class Meta:
-        model = Note
-        fields = "__all__"
-        extra_kwargs = {"id": {"read_only": True}}
 
     # below methods can be used to do perform manual logic
 
@@ -105,12 +125,12 @@ class NoteCustomSerializer(serializers.Serializer):
 class ProfileNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        exclude = ("owner",)
+        fields = ("id", "title", "body")
         # Both `fields` and `exclude` can't be set simultaniously
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    notes = ProfileNoteSerializer(many=True, read_only=True)
+    notes = ProfileNoteSerializer(source="note_set", many=True, read_only=True)
     """
     notes = serializers.SerializerMethodField(method_name="get_notes")
 
@@ -119,5 +139,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = Profile
-        fields = ("id", "username", "notes")
+        swagger_schema_fields = {"title": "NoteByUser"}
+        model = User
+        fields = ("id", "email", "notes")

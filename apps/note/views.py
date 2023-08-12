@@ -1,14 +1,18 @@
 from functools import wraps
-from typing import Union
 
 from django.shortcuts import get_object_or_404
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.note.models import Note
-from apps.note.serializers import NoteSerializer, ProfileSerializer
+from apps.note.serializers import (
+    NoteResponseSerializer,
+    NoteSerializer,
+    ProfileSerializer,
+)
 from apps.utils.auth import JwtAuthentication
 
 
@@ -108,6 +112,14 @@ def update_user_input(f):
     return wrapper
 
 
+@swagger_auto_schema(
+    method="GET", responses={200: NoteResponseSerializer(many=True)}
+)
+@swagger_auto_schema(
+    method="POST",
+    request_body=NoteSerializer,
+    responses={201: NoteResponseSerializer},
+)
 @decorators.api_view(["GET", "POST"])
 @decorators.authentication_classes([JwtAuthentication])
 @update_user_input
@@ -123,6 +135,7 @@ def note_list(request: Request) -> Response:
     return Response(**payload)
 
 
+@swagger_auto_schema(method="GET", responses={200: ProfileSerializer})
 @decorators.api_view(["GET"])
 @decorators.authentication_classes([JwtAuthentication])
 def user_notes(request: Request) -> Response:
@@ -135,10 +148,16 @@ Apis with pk/id values
 """
 
 
+@swagger_auto_schema(method="GET", responses={200: NoteResponseSerializer})
+@swagger_auto_schema(
+    method="PUT",
+    request_body=NoteSerializer,
+    responses={202: NoteResponseSerializer},
+)
 @decorators.api_view(["GET", "PUT", "DELETE"])
 @decorators.authentication_classes([JwtAuthentication])
 @update_user_input
-def note_detail(request: Request, pk: Union[int, str]) -> Response:
+def note_detail(request: Request, pk: int) -> Response:
     payload = {"status": 200, "data": None}
 
     match request.method:
@@ -147,7 +166,9 @@ def note_detail(request: Request, pk: Union[int, str]) -> Response:
             payload["data"] = NoteCRUD.retrieve(pk)
         case "PUT":
             # update data
-            payload.update(data=NoteCRUD.update(pk, data=request.data), status=202)
+            payload.update(
+                data=NoteCRUD.update(pk, data=request.data), status=202
+            )
         case "DELETE":
             # delete data
             payload.update(data=NoteCRUD.delete(pk), status=204)

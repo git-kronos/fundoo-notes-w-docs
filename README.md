@@ -14,3 +14,4 @@
 -   mbv(method based view)
 -   serializations
 -   jwt authentication(PyJwt)
+-   [swagger documention](./tools/docs/v1.md#swagger)

@@ -13,6 +13,24 @@
 					"name": "note",
 					"item": [
 						{
+							"name": "user-notes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/note/user",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"note",
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "list-note",
 							"request": {
 								"method": "GET",
@@ -37,7 +55,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"title\": \"hii 2\",\n    \"body\": \"first note\"\n}",
+									"raw": "{\n    \"title\": \"hii\",\n    \"body\": \"second note\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -75,31 +93,6 @@
 										{
 											"key": "pk",
 											"value": "2"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "user-notes",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base-url}}/note/user/:pk",
-									"host": [
-										"{{base-url}}"
-									],
-									"path": [
-										"note",
-										"user",
-										":pk"
-									],
-									"variable": [
-										{
-											"key": "pk",
-											"value": "1"
 										}
 									]
 								}
@@ -172,7 +165,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"email\": \"user_three@email.com\",\n    \"password\": \"Password12\",\n    \"first_name\": \"user\",\n    \"last_name\": \"three\"\n}",
+									"raw": "{{creds}}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -218,7 +211,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"email\": \"user_three@email.com\",\n    \"password\": \"Password12\"\n}",
+									"raw": "{{creds}}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -247,7 +240,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"email\": \"user_three@email.com\",\n    \"password\": \"Password12\"\n}",
+									"raw": "",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -310,6 +303,11 @@
 		{
 			"key": "token",
 			"value": ""
+		},
+		{
+			"key": "creds",
+			"value": "{\"email\": \"\", \"password\": \"\"}",
+			"type": "string"
 		}
 	]
 }
