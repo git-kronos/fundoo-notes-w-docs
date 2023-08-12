@@ -55,7 +55,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"title\": \"hii\",\n    \"body\": \"second note\"\n}",
+									"raw": "{\n    \"title\": \"user 3 note\",\n    \"body\": \"second note\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -92,7 +92,7 @@
 									"variable": [
 										{
 											"key": "pk",
-											"value": "2"
+											"value": "5"
 										}
 									]
 								}
@@ -149,6 +149,74 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "collab",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"collaborator\": [\n        3\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base-url}}/note/:pk/collab",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"note",
+										":pk",
+										"collab"
+									],
+									"variable": [
+										{
+											"key": "pk",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "collab",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"collaborator\": [\n        3\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base-url}}/note/:pk/collab",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"note",
+										":pk",
+										"collab"
+									],
+									"variable": [
+										{
+											"key": "pk",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -165,7 +233,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{{creds}}",
+									"raw": "{\n    \"email\": \"user_four@email.com\",\n    \"password\": \"Password12\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -211,7 +279,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{{creds}}",
+									"raw": "// ...{{creds}},\n{\n    \"email\": \"user_three@email.com\",\n    \"password\": \"Password12\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"

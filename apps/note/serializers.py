@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from drf_yasg import openapi
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 from apps.note.models import Note
 
@@ -23,6 +24,7 @@ class NoteResponseSerializer(serializers.ModelSerializer):
         swagger_schema_fields = {"title": "NoteOut"}
         model = Note
         fields = "__all__"
+        read_only_fields = ("id", "collaborator")
 
 
 class NoteSerializer(serializers.ModelSerializer):
@@ -57,7 +59,7 @@ class NoteSerializer(serializers.ModelSerializer):
         }
         model = Note
         fields = "__all__"
-        extra_kwargs = {"id": {"read_only": True}}
+        read_only_fields = ("id", "collaborator")
 
     def validate_title(self, value):
         """
@@ -69,9 +71,8 @@ class NoteSerializer(serializers.ModelSerializer):
 
     # below methods can be used to do perform manual logic
 
-    def create(self, validated_data):
-        print(validated_data)
-        return super().create(validated_data)
+    # def create(self, validated_data):
+    #     return super().create(validated_data)
 
     # def update(self, instance, validated_data):
     #     return super().update(instance, validated_data)
@@ -130,7 +131,7 @@ class ProfileNoteSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    notes = ProfileNoteSerializer(source="note_set", many=True, read_only=True)
+    notes = ProfileNoteSerializer(many=True, read_only=True)
     """
     notes = serializers.SerializerMethodField(method_name="get_notes")
 
@@ -142,3 +143,24 @@ class ProfileSerializer(serializers.ModelSerializer):
         swagger_schema_fields = {"title": "NoteByUser"}
         model = User
         fields = ("id", "email", "notes")
+
+
+class CollaboratorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = "__all__"
+        read_only_fields = ("id", "title", "body", "owner")
+
+    def update(self, instance: Note, validated_data: dict):
+        action = self.context.get("action")
+        if not action:
+            raise APIException(detail="necessary context is missing")
+
+        users = validated_data["collaborator"]
+        if action == "add":
+            # instance.collaborator.set(users) # replace old with new
+            instance.collaborator.add(*users)  # add target item
+        if action == "remove":
+            # instance.collaborator.clear()   # remove all
+            instance.collaborator.remove(*users)  # remove target item
+        return instance

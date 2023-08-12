@@ -1,5 +1,6 @@
 from functools import wraps
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators
@@ -9,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.note.models import Note
 from apps.note.serializers import (
+    CollaboratorSerializer,
     NoteResponseSerializer,
     NoteSerializer,
     ProfileSerializer,
@@ -46,7 +48,7 @@ class NoteCRUD:
         return serializer.data
 
     @staticmethod
-    def list():
+    def list(owner):
         """
         `get_list_or_404()` -> list[object] or raise Http404 error
         > alternative:
@@ -62,12 +64,31 @@ class NoteCRUD:
         Note: use `select_related()` for query having relationship
         """
 
-        qs = Note.objects.all()
+        qs = Note.objects.select_related("owner").filter(
+            Q(owner=owner) | Q(collaborator=owner)
+        )
+        # difference between select_related(...).filter(...) and .filter(...) can be verified by printing `qs.query`
+
+        # in above approch sql query will execute all collect all results and then filter from those. so ultimately, total 1 query will be fired
+
+        # but in `alternative 1` approch, every time a note obj have a relation-ship attribute another query will be fired. and here more than 1 query will be fire
+
+        """ alternative: 1
+        qs = Note.objects.filter(Q(owner=owner) | Q(collaborator=owner)) """
+
+        """ alternative 2
+
+        notes: list[Note] = owner.notes.all()
+        collab_notes = owner.collab.all()
+        qs = notes.union(collab_notes)
+        """
+
+        # qs = Note.objects.filter(owner=owner)
         serializer = NoteSerializer(qs, many=True)
         return serializer.data
 
     @staticmethod
-    def retrieve(pk: int):
+    def retrieve(owner, pk: int):
         """
         `get_object_or_404()` -> object or raise Http404 error
         > alternative:
@@ -78,22 +99,25 @@ class NoteCRUD:
             raise exceptions.NotFound()
         ```
         """
-
-        obj = get_object_or_404(Note, pk=pk)
+        obj = get_object_or_404(
+            Note,
+            Q(pk=pk),
+            Q(owner=owner) | Q(collaborator=owner),
+        )
         serializer = NoteSerializer(obj)
         return serializer.data
 
     @staticmethod
-    def update(pk: int, data: dict):
-        obj = get_object_or_404(Note, pk=pk)
+    def update(owner, pk: int, data: dict):
+        obj = get_object_or_404(Note, pk=pk, owner=owner)
         serializer = NoteSerializer(obj, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return serializer.data
 
     @staticmethod
-    def delete(pk: int):
-        obj = get_object_or_404(Note, pk=pk)
+    def delete(owner, pk: int):
+        obj = get_object_or_404(Note, pk=pk, owner=owner)
         obj.delete()
         return None
 
@@ -127,7 +151,7 @@ def note_list(request: Request) -> Response:
     payload = {"status": 200, "data": None}
     match request.method:
         case "GET":
-            payload["data"] = NoteCRUD.list()
+            payload["data"] = NoteCRUD.list(owner=request.user)
         case "POST":
             payload.update(data=NoteCRUD.create(request.data), status=201)
         case _:
@@ -162,17 +186,36 @@ def note_detail(request: Request, pk: int) -> Response:
 
     match request.method:
         case "GET":
-            # retrieve data
-            payload["data"] = NoteCRUD.retrieve(pk)
+            payload["data"] = NoteCRUD.retrieve(pk=pk, owner=request.user)
         case "PUT":
-            # update data
             payload.update(
-                data=NoteCRUD.update(pk, data=request.data), status=202
+                owner=request.user,
+                data=NoteCRUD.update(pk, data=request.data),
+                status=202,
             )
         case "DELETE":
-            # delete data
             payload.update(data=NoteCRUD.delete(pk), status=204)
         case _:
             raise MethodNotAllowed()
 
     return Response(**payload)
+
+
+@swagger_auto_schema(
+    methods=["POST", "DELETE"], request_body=CollaboratorSerializer
+)
+@decorators.api_view(["POST", "DELETE"])
+@decorators.authentication_classes([JwtAuthentication])
+def collaborator_view(request: Request, pk: int):
+    actions = {"POST": "add", "DELETE": "remove"}
+    action = actions.get(request.method)
+
+    obj = get_object_or_404(Note, pk=pk)
+    serializer = CollaboratorSerializer(
+        instance=obj,
+        data=request.data,
+        context={"action": action},
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=202)
