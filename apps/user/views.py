@@ -20,7 +20,7 @@ User = get_user_model()
     tags=["Auth"],
     method="POST",
     request_body=UserSerializer,
-    responses={201: UserResponseSerializer},
+    responses={201: UserResponseSerializer()},
 )
 @decorators.api_view(["POST"])
 def user_register(request: Request) -> Response:
@@ -34,7 +34,7 @@ def user_register(request: Request) -> Response:
     tags=["Auth"],
     method="POST",
     request_body=LoginSerializer,
-    responses={202: LoginResponseSerializer},
+    responses={202: LoginResponseSerializer()},
 )
 @decorators.api_view(["POST"])
 def user_login(request: Request) -> Response:
@@ -47,7 +47,7 @@ def user_login(request: Request) -> Response:
 @swagger_auto_schema(
     tags=["User"],
     method="GET",
-    responses={200: UserResponseSerializer},
+    responses={200: UserResponseSerializer()},
 )
 @decorators.api_view(["GET"])
 @decorators.authentication_classes([JwtAuthentication])

@@ -16,6 +16,7 @@ from apps.note.serializers import (
     ProfileSerializer,
 )
 from apps.utils.auth import JwtAuthentication
+from django.http.request import QueryDict
 
 
 # Create your views here.
@@ -130,7 +131,12 @@ Apis without pk/id values
 def update_user_input(f):
     @wraps(f)
     def wrapper(request: Request, *a, **kw):
-        request.data["owner"] = request.user.id
+        if isinstance(request.data, QueryDict):
+            request.data._mutable = True
+            request.data.appendlist('owner', request.user.id)
+            request.data._mutable = False
+        elif isinstance(request.data, dict):
+            request.data["owner"] = request.user.id
         return f(request, *a, **kw)
 
     return wrapper
@@ -159,7 +165,7 @@ def note_list(request: Request) -> Response:
     return Response(**payload)
 
 
-@swagger_auto_schema(method="GET", responses={200: ProfileSerializer})
+@swagger_auto_schema(method="GET", responses={200: ProfileSerializer()})
 @decorators.api_view(["GET"])
 @decorators.authentication_classes([JwtAuthentication])
 def user_notes(request: Request) -> Response:
@@ -172,11 +178,11 @@ Apis with pk/id values
 """
 
 
-@swagger_auto_schema(method="GET", responses={200: NoteResponseSerializer})
+@swagger_auto_schema(method="GET", responses={200: NoteResponseSerializer()})
 @swagger_auto_schema(
     method="PUT",
     request_body=NoteSerializer,
-    responses={202: NoteResponseSerializer},
+    responses={202: NoteResponseSerializer()},
 )
 @decorators.api_view(["GET", "PUT", "DELETE"])
 @decorators.authentication_classes([JwtAuthentication])
@@ -189,12 +195,11 @@ def note_detail(request: Request, pk: int) -> Response:
             payload["data"] = NoteCRUD.retrieve(pk=pk, owner=request.user)
         case "PUT":
             payload.update(
-                owner=request.user,
-                data=NoteCRUD.update(pk, data=request.data),
+                data=NoteCRUD.update(owner=request.user, pk=pk, data=request.data),
                 status=202,
             )
         case "DELETE":
-            payload.update(data=NoteCRUD.delete(pk), status=204)
+            payload.update(data=NoteCRUD.delete(owner=request.user, pk=pk), status=204)
         case _:
             raise MethodNotAllowed()
 
