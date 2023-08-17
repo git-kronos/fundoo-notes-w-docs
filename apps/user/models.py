@@ -37,19 +37,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     # username is optional
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        help_text=(
-            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
-        ),
-        validators=[AbstractUser.username_validator],
-        error_messages={
-            "unique": "A user with that username already exists.",
-        },
-        null=True,
-        blank=True,
-    )
+    username = None
     email = models.EmailField(unique=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

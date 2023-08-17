@@ -17,7 +17,9 @@ from drf_yasg import openapi
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+STATIC_DIR = BASE_DIR / "assets"
+STATIC_ROOT_DIR = BASE_DIR / "cdn" / "static"
+MEDIA_ROOT_DIR = BASE_DIR / "cdn" / "media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -34,6 +36,17 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+CORE_APPS = [
+    "django_extensions",
+    "rest_framework",
+    "drf_yasg",
+    "django_browser_reload",
+]
+CUSTOM_APPS = [
+    "apps.note",
+    "apps.user",
+    "apps.frontend",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -42,12 +55,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_extensions",
-    "rest_framework",
-    "drf_yasg",
-    "apps.note",
-    "apps.user",
+    *CORE_APPS,
+    *CUSTOM_APPS,
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -57,6 +68,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -64,7 +76,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -79,7 +91,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -89,7 +100,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -109,7 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -121,11 +130,18 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "static/"  # used to access staticfiles(js, css files)
+STATICFILES_DIRS = [STATIC_DIR]  # to store static file locally
+STATIC_ROOT = (
+    STATIC_ROOT_DIR  # location to store static files in live environment
+)
+
+
+MEDIA_URL = "media/"  # path to access uploaded files
+MEDIA_ROOT = MEDIA_ROOT_DIR  # location to keep uploaded files
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -152,3 +168,6 @@ SWAGGER_SETTINGS = {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
     },
 }
+
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"

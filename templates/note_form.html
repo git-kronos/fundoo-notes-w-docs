@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+    <a href="{% url 'frontend:home' %}">Home</a>
+    {% include "components/form.html" with form=form title=page %}
+{% endblock content %}

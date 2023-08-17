@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" meta>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="keywords" content="Fundoo Note" />
+        <meta name="description" content="foo" />
+        <title>
+            {% block title %}
+                Fundoo Notes
+            {% endblock title %}
+        </title>
+        <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+        <link rel="stylesheet" href="{% static 'app.css' %}">
+    </head>
+    <body>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'frontend:logout' %}">Logout</a>
+        {% endif %}
+        <div>
+            <h1>Fundoo Notes</h1>
+            {% block content %}
+            {% endblock content %}
+        </div>
+        <script src="{% static 'app.js' %}"></script>
+        {% load django_browser_reload %}
+    </body>
+</html>

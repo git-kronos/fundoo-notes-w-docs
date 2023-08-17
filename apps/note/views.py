@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.db.models import Q
+from django.http.request import QueryDict
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators
@@ -16,7 +17,6 @@ from apps.note.serializers import (
     ProfileSerializer,
 )
 from apps.utils.auth import JwtAuthentication
-from django.http.request import QueryDict
 
 
 # Create your views here.
@@ -133,7 +133,7 @@ def update_user_input(f):
     def wrapper(request: Request, *a, **kw):
         if isinstance(request.data, QueryDict):
             request.data._mutable = True
-            request.data.appendlist('owner', request.user.id)
+            request.data.appendlist("owner", request.user.id)
             request.data._mutable = False
         elif isinstance(request.data, dict):
             request.data["owner"] = request.user.id
@@ -195,11 +195,15 @@ def note_detail(request: Request, pk: int) -> Response:
             payload["data"] = NoteCRUD.retrieve(pk=pk, owner=request.user)
         case "PUT":
             payload.update(
-                data=NoteCRUD.update(owner=request.user, pk=pk, data=request.data),
+                data=NoteCRUD.update(
+                    owner=request.user, pk=pk, data=request.data
+                ),
                 status=202,
             )
         case "DELETE":
-            payload.update(data=NoteCRUD.delete(owner=request.user, pk=pk), status=204)
+            payload.update(
+                data=NoteCRUD.delete(owner=request.user, pk=pk), status=204
+            )
         case _:
             raise MethodNotAllowed()
 

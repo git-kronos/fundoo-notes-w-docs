@@ -9,7 +9,6 @@ django-admin startproject project .
 mkdir -p app/func_one
 python manage.py startapp func_one app/func_one
 python manage.py runserver ip:port
-python manage.py createsuperuser --username admin --email admin@email.com
 command
 
 case $arg in
@@ -35,5 +34,6 @@ migrate)
     python manage.py makemigrations
     python manage.py migrate
     ;;
+user) python manage.py createsuperuser --email admin@email.com;;
 *) echo 'Error: Wrong arguments';;
 esac

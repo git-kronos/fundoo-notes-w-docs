@@ -1,0 +1,17 @@
+<div class="note__card">
+    <h4 class="note__title">
+        {{ object.title }} (<span>{{ object.id }}</span>)
+    </h4>
+    <p class="note__body">{{ object.body }}</p>
+    <ul>
+        {% for collab in object.collaborator.all %}
+            <li>{{ collab.get_full_name |title }}</li>
+        {% empty %}
+            <span>No collaborator found</span>
+        {% endfor %}
+    </ul>
+    <div class="note__card__footer">
+        <span>@{{ object.owner.get_full_name|title }}</span>
+        <a href="{% url 'frontend:update' pk=object.pk %}">update</a>
+    </div>
+</div>

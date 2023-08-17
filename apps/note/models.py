@@ -13,6 +13,3 @@ class Note(models.Model):
 
     class Meta:
         db_table = "note"
-
-    def __str__(self) -> str:
-        return "Note(id=%d, owner_id=%d)" % (self.id, self.owner_id)

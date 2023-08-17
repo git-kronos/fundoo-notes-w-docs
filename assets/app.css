@@ -1,0 +1,171 @@
+:root{
+    --card-bg: cadetblue;
+}
+
+*{
+    font-family:  monaco, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    background-color: aliceblue;
+    height: 100vh;
+    width: 100 vw;
+    padding: 50px 100px;
+}
+
+table{
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, th,td {
+    border: 1px solid;
+}
+
+tr, td{
+    align-items: center;
+    justify-content: center;
+}
+
+button{
+    font-size: 1.3rem;
+    margin-top: 2rem;
+    display: block;
+}
+
+button:hover{
+    transition: .4s;
+    color: #fff;
+    background-color: #333;
+    border: #333;
+    border-radius: 7px;
+    padding: 2px;
+}
+
+.errorlist{
+    color: tomato;
+}
+
+label, input{
+    padding: .5rem;
+    display: block;
+}
+
+select{
+    display: block;
+}
+
+a{
+    text-decoration: none;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 2px;
+    color: var(--card-bg);
+}
+
+a:hover, a:active{
+    background-color: white;
+    color: var(--card-bg);
+    border-color: var(--card-bg);
+}
+
+.note{
+    margin-top: 1em;
+    display: grid;
+    justify-content: space-evenly;
+    row-gap: 1em;
+    transition: .4s;
+
+}
+.note__title{
+    margin-top: 2rem;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+
+    & h2{
+        display: inline;
+    }
+
+    & a{
+        float: right;
+        margin: auto 0;
+    }
+}
+
+.note__card{
+
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 1px 1px 5px #333,
+    -1px 1px 5px #333;
+
+    background-color: var(--card-bg);
+
+    & h4.note__title{
+        color: white;
+        margin-bottom: 1rem;
+        margin-top: .6rem;
+    }
+    & p.note__body{
+        color: beige;
+        margin-bottom: 1rem;
+    }
+
+    & ul{
+        list-style: none;
+        & li{
+            font-size: .9rem;
+        }
+    }
+    & .note__card__footer {
+        display: inline-block;
+        width: 100%;
+        & span{
+            font-size: .7rem;
+        }
+        & a{
+            float: right;
+            color: white;
+        }
+        & a:hover, a:active{
+            background-color: white;
+            color: var(--card-bg);
+            border-color: var(--card-bg);
+        }
+
+    }
+}
+@media (max-width: 576px) {
+    .note{
+        grid-template-columns: calc(75% - 1em);
+    }
+}
+@media (min-width: 576px) {
+    .note{
+        grid-template-columns: calc(50% - 2em) calc(50% - 2em);
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .note{
+        grid-template-columns: calc(50% - 2em) calc(50% - 2em);
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .note{
+        grid-template-columns: calc(33% - 2em) calc(33% - 2em) calc(33% - 2em);
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .note{
+        grid-template-columns: calc(25% - 2em) calc(25% - 2em) calc(25% - 2em) calc(25% - 2em);
+    }
+}

@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from rest_framework import authentication
-from rest_framework.exceptions import APIException, AuthenticationFailed, NotFound
+from rest_framework.exceptions import (
+    APIException,
+    AuthenticationFailed,
+    NotFound,
+)
 
 from apps.utils.hash import JWT
 
