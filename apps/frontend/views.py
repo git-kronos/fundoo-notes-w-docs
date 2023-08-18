@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 
 from apps.frontend.forms import NoteForm, RegistrationForm
 from apps.note.models import Note
+from apps.utils.paginator import paginate_obj
 
 
 # Create your views here.
@@ -17,7 +18,8 @@ def root(request: HttpRequest) -> HttpResponse:
         .filter(Q(owner=request.user) | Q(collaborator=request.user))
         .order_by("-id")
     )
-    return render(request, "index.html", {"qs": notes})
+    page_obj = paginate_obj(notes, request)
+    return render(request, "index.html", {"po": page_obj})
 
 
 def login_view(request: HttpRequest) -> HttpResponse:

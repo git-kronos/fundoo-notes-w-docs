@@ -41,18 +41,19 @@ class TestNote:
         response = client.post(URLs.list, data=payload, **get_headers(user))
         assert response.status_code == status_code
 
+    @pytest.mark.testing
     def test_note_list_api(self, client, user):
         """Test list note api with auth token"""
         NoteFactory.create_batch(2, owner=user)  # notes of current user
         response = client.get(URLs.list, **get_headers(user))
-        assert len(response.json()) == 2
+        assert len(response.json()["data"]["results"]) == 2
         assert response.status_code == 200
 
     def test_note_list_returns_only_current_users_data(self, client, user):
         """Test if list note api response shows only authorised user's note's or not!"""
         NoteFactory.create_batch(2)  # notes of random users
         response = client.get(URLs.list, **get_headers(user))
-        assert len(response.json()) == 0
+        assert len(response.json()["data"]["results"]) == 0
         assert response.status_code == 200
 
     def test_note_retrieve_with_auth(self, client, user):
@@ -60,8 +61,8 @@ class TestNote:
         obj = NoteFactory.create(owner=user)  # notes of random users
         response = client.get(URLs.detail(obj.id), **get_headers(user))
         assert response.status_code == 200
-        assert response.json()["id"] == obj.id
-        assert response.json()["owner"] == user.id
+        assert response.json()["data"]["id"] == obj.id
+        assert response.json()["data"]["owner"] == user.id
 
     def test_note_retrieve_without_auth(self, client, user):
         """Note retrieve api with auth"""
@@ -83,8 +84,10 @@ class TestNote:
             URLs.detail(obj.id), data=payload, **get_headers(user)
         )
         post_action = Note.objects.get(pk=obj.pk)
-        assert obj.title != response.json()["title"]
-        assert post_action.title == response.json()["title"]
+        print(response.json())
+        result = response.json()["data"]
+        assert obj.title != result["title"]
+        assert post_action.title == result["title"]
         assert response.status_code == 202
 
     def test_note_delete_with_auth(self, client, user):

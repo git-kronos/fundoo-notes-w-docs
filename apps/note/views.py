@@ -17,6 +17,8 @@ from apps.note.serializers import (
     ProfileSerializer,
 )
 from apps.utils.auth import JwtAuthentication
+from apps.utils.paginator import paginate_api_response
+from apps.utils.renderer import ApiRenderer
 
 
 # Create your views here.
@@ -49,7 +51,7 @@ class NoteCRUD:
         return serializer.data
 
     @staticmethod
-    def list(owner):
+    def list(owner, request=None):
         """
         `get_list_or_404()` -> list[object] or raise Http404 error
         > alternative:
@@ -85,8 +87,9 @@ class NoteCRUD:
         """
 
         # qs = Note.objects.filter(owner=owner)
-        serializer = NoteSerializer(qs, many=True)
-        return serializer.data
+        # serializer = NoteSerializer(qs, many=True)
+        # return serializer.data
+        return paginate_api_response(request, qs, NoteSerializer)
 
     @staticmethod
     def retrieve(owner, pk: int):
@@ -152,22 +155,22 @@ def update_user_input(f):
 )
 @decorators.api_view(["GET", "POST"])
 @decorators.authentication_classes([JwtAuthentication])
+@decorators.renderer_classes([ApiRenderer])
 @update_user_input
 def note_list(request: Request) -> Response:
     payload = {"status": 200, "data": None}
     match request.method:
         case "GET":
-            payload["data"] = NoteCRUD.list(owner=request.user)
+            return NoteCRUD.list(owner=request.user, request=request)
         case "POST":
             payload.update(data=NoteCRUD.create(request.data), status=201)
-        case _:
-            raise MethodNotAllowed()
-    return Response(**payload)
+            return Response(**payload)
 
 
 @swagger_auto_schema(method="GET", responses={200: ProfileSerializer()})
 @decorators.api_view(["GET"])
 @decorators.authentication_classes([JwtAuthentication])
+@decorators.renderer_classes([ApiRenderer])
 def user_notes(request: Request) -> Response:
     serializer = ProfileSerializer(instance=request.user)
     return Response(serializer.data)
@@ -186,6 +189,7 @@ Apis with pk/id values
 )
 @decorators.api_view(["GET", "PUT", "DELETE"])
 @decorators.authentication_classes([JwtAuthentication])
+@decorators.renderer_classes([ApiRenderer])
 @update_user_input
 def note_detail(request: Request, pk: int) -> Response:
     payload = {"status": 200, "data": None}

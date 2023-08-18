@@ -11,6 +11,7 @@ from apps.user.serializers import (
     UserSerializer,
 )
 from apps.utils.auth import JwtAuthentication
+from apps.utils.renderer import ApiRenderer
 
 User = get_user_model()
 
@@ -23,6 +24,7 @@ User = get_user_model()
     responses={201: UserResponseSerializer()},
 )
 @decorators.api_view(["POST"])
+@decorators.renderer_classes([ApiRenderer])
 def user_register(request: Request) -> Response:
     serializer = UserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -51,6 +53,7 @@ def user_login(request: Request) -> Response:
 )
 @decorators.api_view(["GET"])
 @decorators.authentication_classes([JwtAuthentication])
+@decorators.renderer_classes([ApiRenderer])
 def user_profile(request: Request) -> Response:
     return Response(UserSerializer(request.user).data)
 

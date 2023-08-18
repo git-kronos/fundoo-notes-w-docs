@@ -5,8 +5,9 @@
         <a href="{% url 'frontend:create' %}">create</a>
     </div>
     <div class="note">
-        {% for item in qs %}
+        {% for item in po.object_list %}
             {% include "components/note_card.html" with object=item %}
         {% endfor %}
     </div>
+    {% include "components/paginator.html" with page_obj=po %}
 {% endblock content %}
