@@ -1,0 +1,21 @@
+@BASE_URL = http://localhost:8000/api
+@creds = {"email": "user_one@email.com", "password": "Password12"}
+@token = Bearer {{login_api.response.body.token}}
+###
+
+# @name login_api
+POST {{BASE_URL}}/login
+
+{{creds}}
+###
+
+POST {{BASE_URL}}/register
+
+{
+    "email": "user_six@email.com",
+    "password": "Password12"
+}
+###
+
+GET {{BASE_URL}}/profile
+Authorization: {{token}}

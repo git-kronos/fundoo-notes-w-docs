@@ -1,0 +1,63 @@
+@BASE_URL = http://localhost:8000/api/note
+@token = Bearer {{login_api.response.body.token}}
+@creds = {"email": "{{email}}", "password": "{{password}}"}
+###
+
+# @name login_api
+POST http://localhost:8000/api/login
+
+{{creds}}
+
+###
+# @name note_list
+GET {{BASE_URL}}/
+?page=1
+# &page_size=2
+Authorization: {{token}}
+
+###
+# @name note_retrieve
+GET {{BASE_URL}}/58
+Authorization: {{token}}
+
+
+###
+# @name note_create
+POST  {{BASE_URL}}/
+Authorization: {{token}}
+
+{"title": "note-title", "body": "note-title"}
+
+
+###
+# @name note_update
+PUT {{BASE_URL}}/57
+Authorization: {{token}}
+
+{"title": "note-title 57", "body": "note-body"}
+
+
+###
+# @name note_delete
+DELETE {{BASE_URL}}/55
+Authorization: {{token}}
+
+###
+# @name add_collaborator
+POST {{BASE_URL}}/58/collab
+Authorization: {{token}}
+
+{"collaborator": [2, 3]}
+
+
+###
+# @name remove_collaborator
+DELETE {{BASE_URL}}/58/collab
+Authorization: {{token}}
+
+{"collaborator": [2,3]}
+
+###
+# @name get_users_note
+GET {{BASE_URL}}/user
+Authorization: {{token}}

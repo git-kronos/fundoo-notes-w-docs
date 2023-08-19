@@ -19,14 +19,6 @@ End result will be enresult will be a serializer object.
 """
 
 
-class NoteResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        swagger_schema_fields = {"title": "NoteOut"}
-        model = Note
-        fields = "__all__"
-        read_only_fields = ("id", "collaborator")
-
-
 class NoteSerializer(serializers.ModelSerializer):
 
     """

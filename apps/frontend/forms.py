@@ -24,14 +24,17 @@ class NoteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs) -> None:
         # Additional step to add custom parameter(user) to Form instance
         self.user = kwargs.pop("user", None)
+        user_id = getattr(self.user, "id")
+        assert isinstance(user_id, int)
         super().__init__(*args, **kwargs)
 
         # manipulate each field...
-        self.fields["owner"].queryset = User.objects.filter(id=self.user.pk)
-        self.fields["owner"].initial = self.user.pk
+        self.fields["owner"].queryset = User.objects.filter(id=user_id)
+        self.fields["owner"].initial = user_id
 
         qs = self.fields["collaborator"].queryset
-        self.fields["collaborator"].queryset = qs.exclude(id=self.user.id)
+        self.fields["collaborator"].queryset = qs.exclude(id=user_id)
+        self.fields["collaborator"].required = False
 
     def clean_collaborator(self):
         """individual validation"""

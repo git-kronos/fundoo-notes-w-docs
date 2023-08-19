@@ -22,3 +22,7 @@
 
     https://github.com/django/django/blob/main/django/conf/global_settings.py
     https://youtu.be/zojnkKGRXp0
+
+## V2 development
+
+-   [api class based view](./tools/docs/v2.md#v2step-1api-cbv)

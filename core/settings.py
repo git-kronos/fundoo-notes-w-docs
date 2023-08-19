@@ -171,3 +171,10 @@ SWAGGER_SETTINGS = {
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
+
+REST_FRAMEWORK = {
+    # to avoid csrf token in swagger dock
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+}
