@@ -12,8 +12,9 @@ EXP = settings.JWT_CONFIG["exp"]
 
 class JWT:
     class Aud(str, Enum):
-        REGISTER = "USER:resiter"
+        REGISTER = "USER:register"
         LOGIN = "login"
+        VERIFY = 'user_verification'
 
     @staticmethod
     def encode(body: dict, aud: Aud, exp: datetime = None) -> str:

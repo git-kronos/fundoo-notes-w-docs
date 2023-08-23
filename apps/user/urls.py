@@ -7,6 +7,7 @@ urlpatterns = [
     path("register", views.RegisterAPIView.as_view(), name="register"),
     path("login", views.LoginAPIView.as_view(), name="login"),
     path("profile", views.ProfileAPIView.as_view(), name="profile"),
+    path("verify/<str:token>", views.verify_user, name="verify"),
 ]
 """
     path("password_reset", views.change_password, name="change_password"),

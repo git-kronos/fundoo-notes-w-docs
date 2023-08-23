@@ -20,12 +20,11 @@ from apps.utils import (
     JwtAuthentication,
     SerializedResponse,
     StandardPagination,
+    collaborator_signals,
 )
 
 # Create your views here.
-get_notes_by_user = lambda user: Note.objects.filter(
-    Q(owner=user) | Q(collaborator=user)
-)
+get_notes_by_user = lambda user: Note.objects.filter(Q(owner=user) | Q(collaborator=user))
 
 
 def update_user_input(f):
@@ -155,16 +154,14 @@ class NoteModelViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
-    @swagger_auto_schema(method="GET", responses={200: ProfileSerializer})
+    @swagger_auto_schema(method="GET", responses={200: ProfileSerializer()})
     @action(methods=["GET"], detail=False, url_name="user")
     def user_notes(self, request):
         print(self.action)
         sr = SerializedResponse(ProfileSerializer, request.user)
         return sr.get()
 
-    @swagger_auto_schema(
-        methods=["POST", "DELETE"], responses={202: CollaboratorSerializer}
-    )
+    @swagger_auto_schema(methods=["POST", "DELETE"], responses={202: CollaboratorSerializer()})
     @action(
         detail=True,
         methods=["POST", "DELETE"],
@@ -176,4 +173,6 @@ class NoteModelViewSet(ModelViewSet):
         action = actions.get(request.method)
         obj = get_object_or_404(Note, pk=pk)
         sr = SerializedResponse(self.collab_serializer_class, obj)
-        return sr.put(request.data, context={"action": action})
+        response = sr.put(request.data, context={"action": action})
+        collaborator_signals.send(sender=self.__class__, payload={"data": response.data, "action": action})
+        return response

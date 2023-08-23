@@ -15,6 +15,8 @@ from pathlib import Path
 
 from drf_yasg import openapi
 
+from core.env import Env
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "assets"
@@ -25,15 +27,12 @@ MEDIA_ROOT_DIR = BASE_DIR / "cdn" / "media"
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-!v9lm!l8=0@u*p!+kcplxsj73j5z9gz&3li$13auc1mzn=hahh"
-)
+SECRET_KEY = Env.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = Env.DEBUG
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 CORE_APPS = [
@@ -58,7 +57,6 @@ INSTALLED_APPS = [
     *CORE_APPS,
     *CUSTOM_APPS,
 ]
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -139,7 +137,6 @@ STATIC_ROOT = (
     STATIC_ROOT_DIR  # location to store static files in live environment
 )
 
-
 MEDIA_URL = "media/"  # path to access uploaded files
 MEDIA_ROOT = MEDIA_ROOT_DIR  # location to keep uploaded files
 
@@ -162,7 +159,10 @@ SWAGGER_SETTINGS = {
     "DEFAULT_INFO": openapi.Info(
         title="Fundoo Note API",
         default_version="v1",
-        description="A test project based on `Google Keep`'s bare minimum functionality for learing `django/djangorestframework`",
+        description=(
+            "A test project based on `Google Keep`'s bare minimum "
+            "functionality for learning `django/djangorestframework`"
+        ),
     ),
     "SECURITY_DEFINITIONS": {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"},
@@ -178,3 +178,13 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
     ],
 }
+
+# https://docs.djangoproject.com/en/4.2/topics/email/
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = Env.EMAIL_HOST
+EMAIL_USE_TLS = Env.EMAIL_TLS
+EMAIL_PORT = Env.EMAIL_PORT
+EMAIL_HOST_USER = Env.EMAIL_USER
+EMAIL_HOST_PASSWORD = Env.EMAIL_PASSD
+
+BASE_URI = Env.BASE_URI

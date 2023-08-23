@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
@@ -8,7 +10,7 @@ from apps.user.serializers import (
     UserResponseSerializer,
     UserSerializer,
 )
-from apps.utils import ApiRenderer, JwtAuthentication, SerializedResponse
+from apps.utils import ApiRenderer, JwtAuthentication, SerializedResponse, JWT
 
 User = get_user_model()
 
@@ -52,3 +54,11 @@ class ProfileAPIView(APIView):
             request.user,
         )
         return serialized_response.get()
+
+
+def verify_user(request, token):
+    payload = JWT.decode(token, aud=JWT.Aud.VERIFY)
+    user = get_object_or_404(User, **payload['data'])
+    user.is_verified = True
+    user.save()
+    return HttpResponse('Verification successfully')

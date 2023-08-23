@@ -26,3 +26,4 @@
 ## V2 development
 
 -   [api class based view](./tools/docs/v2.md#v2step-1api-cbv)
+-   [event driven development](./tools/docs/v2.md#v2step-2event-driven-dev)
