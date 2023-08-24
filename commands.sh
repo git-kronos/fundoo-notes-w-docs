@@ -12,7 +12,7 @@ python manage.py runserver ip:port
 command
 
 case $arg in
-init) pip install -r ./requirements/main.txt;;
+init) pip install -r ./requirements.txt;;
 run) python manage.py runserver;;
 app)
     read -p 'name: ' name

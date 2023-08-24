@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 # Application definition
 CORE_APPS = [
     "django_extensions",
+    "debug_toolbar",
     "rest_framework",
     "drf_yasg",
     "django_browser_reload",
@@ -68,6 +69,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "apps.middleware.LoggingMiddleware",
 ]
 
@@ -189,3 +191,7 @@ LOG_CONFIG = {
     "datefmt": "%Y-%m-%d %H:%M:%S",
     "filename": BASE_DIR / "logs" / "fundoo.log",
 }
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

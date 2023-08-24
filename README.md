@@ -28,3 +28,4 @@
 -   [api class based view](./tools/docs/v2.md#v2step-1api-cbv)
 -   [event driven development](./tools/docs/v2.md#v2step-2event-driven-dev)
 -   [middleware](./tools/docs/v2.md#v2step-3middleware)
+-   [query-manager](./tools/docs/v2.md#v2step-4manager)

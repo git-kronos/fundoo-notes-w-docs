@@ -1,7 +1,6 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
@@ -13,11 +12,7 @@ from apps.utils.paginator import paginate_obj
 # Create your views here.
 @login_required
 def root(request: HttpRequest) -> HttpResponse:
-    notes = (
-        Note.objects.select_related("owner")
-        .filter(Q(owner=request.user) | Q(collaborator=request.user))
-        .order_by("-id")
-    )
+    notes = Note.objects.owner_notes(owner=request.user)
     page_obj = paginate_obj(notes, request)
     return render(request, "index.html", {"po": page_obj})
 
@@ -42,9 +37,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
             obj.set_password(form.cleaned_data["password"])
             obj.save()
             return redirect("frontend:login")
-    return render(
-        request, "auth.html", {"form": form, "page": "Register Form"}
-    )
+    return render(request, "auth.html", {"form": form, "page": "Register Form"})
 
 
 @login_required
@@ -64,12 +57,7 @@ def note_create_or_update_view(request: HttpRequest, pk=None) -> HttpResponse:
     }
     page = "Create Note"
     if pk:
-        form_args.update(
-            initial=None,
-            instance=Note.objects.get(
-                Q(pk=pk), Q(owner=request.user) | Q(collaborator=request.user)
-            ),
-        )
+        form_args.update(initial=None, instance=Note.objects.owner_notes(owner=request.user).get(pk=pk))
         page = "Update Note"
 
     form = NoteForm(**form_args)

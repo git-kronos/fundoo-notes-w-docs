@@ -7,7 +7,22 @@ from apps.utils.hash import JWT
 
 
 # Create your models here.
+class UserQuerySet(models.QuerySet):
+    def all_notes(self, pk=None):
+        if pk is None or pk == "":
+            return self.none()
+        obj = self.prefetch_related("collab", "notes").get(pk=pk)
+        print(self.prefetch_related("collab", "notes").query)
+        return obj.notes.all().union(obj.collab.all())
+
+
 class UserManager(BaseUserManager):
+    def get_queryset(self):
+        return UserQuerySet(model=self.model, using=self._db)
+
+    def all_notes(self, pk=None):
+        return self.get_queryset().all_notes(pk=pk)
+
     def _create_user(self, email, password, **extra_fields):
         """
         Create and save a user with the given email, and password.

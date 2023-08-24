@@ -1,6 +1,5 @@
 from functools import wraps
 
-from django.db.models import Q
 from django.http.request import QueryDict
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -23,10 +22,8 @@ from apps.utils import (
     collaborator_signals,
 )
 
+
 # Create your views here.
-get_notes_by_user = lambda user: Note.objects.filter(Q(owner=user) | Q(collaborator=user)).order_by("id")
-
-
 def update_user_input(f):
     @wraps(f)
     def wrapper(request: Request, *a, **kw):
@@ -142,7 +139,7 @@ class NoteModelViewSet(ModelViewSet):
 
     # queryset = Note.objects.all() # queryset/get_queryset() is mandatory
     def get_queryset(self):
-        return get_notes_by_user(self.request.user)
+        return Note.objects.owner_notes(owner=self.request.user)
 
     # no need to define `list`,`retrieve`,`update` we are depending on default logic
 
