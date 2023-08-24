@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import logging
 from datetime import timedelta
 from pathlib import Path
 
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "apps.middleware.LoggingMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -103,18 +105,10 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # Internationalization
@@ -133,9 +127,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"  # used to access staticfiles(js, css files)
 STATICFILES_DIRS = [STATIC_DIR]  # to store static file locally
-STATIC_ROOT = (
-    STATIC_ROOT_DIR  # location to store static files in live environment
-)
+STATIC_ROOT = STATIC_ROOT_DIR  # location to store static files in live environment
 
 MEDIA_URL = "media/"  # path to access uploaded files
 MEDIA_ROOT = MEDIA_ROOT_DIR  # location to keep uploaded files
@@ -188,3 +180,12 @@ EMAIL_HOST_USER = Env.EMAIL_USER
 EMAIL_HOST_PASSWORD = Env.EMAIL_PASSD
 
 BASE_URI = Env.BASE_URI
+
+
+LOG_CONFIG = {
+    "format": "%(levelname)s [%(asctime)s] %(filename)s %(funcName)s:l-%(lineno)d %(message)s",
+    "datefmt": "%Y-%m-%d %H:%M:%S",
+    "level": logging.DEBUG,
+    "datefmt": "%Y-%m-%d %H:%M:%S",
+    "filename": BASE_DIR / "logs" / "fundoo.log",
+}

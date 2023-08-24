@@ -24,7 +24,7 @@ from apps.utils import (
 )
 
 # Create your views here.
-get_notes_by_user = lambda user: Note.objects.filter(Q(owner=user) | Q(collaborator=user))
+get_notes_by_user = lambda user: Note.objects.filter(Q(owner=user) | Q(collaborator=user)).order_by("id")
 
 
 def update_user_input(f):
@@ -157,7 +157,6 @@ class NoteModelViewSet(ModelViewSet):
     @swagger_auto_schema(method="GET", responses={200: ProfileSerializer()})
     @action(methods=["GET"], detail=False, url_name="user")
     def user_notes(self, request):
-        print(self.action)
         sr = SerializedResponse(ProfileSerializer, request.user)
         return sr.get()
 
