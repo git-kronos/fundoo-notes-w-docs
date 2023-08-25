@@ -64,9 +64,7 @@ class NoteCRUD:
         Note: use `select_related()` for query having relationship
         """
 
-        qs = Note.objects.select_related("owner").filter(
-            Q(owner=owner) | Q(collaborator=owner)
-        )
+        qs = Note.objects.select_related("owner").filter(Q(owner=owner) | Q(collaborator=owner))
         # difference between select_related(...).filter(...) and .filter(...) can be verified by printing `qs.query`
 
         # in above approch sql query will execute all collect all results and then filter from those. so ultimately, total 1 query will be fired
@@ -136,9 +134,7 @@ def update_user_input(f):
     return wrapper
 
 
-@swagger_auto_schema(
-    method="GET", responses={200: NoteResponseSerializer(many=True)}
-)
+@swagger_auto_schema(method="GET", responses={200: NoteResponseSerializer(many=True)})
 @swagger_auto_schema(
     method="POST",
     request_body=NoteSerializer,
@@ -189,21 +185,16 @@ def note_detail(request: Request, pk: int) -> Response:
             payload["data"] = NoteCRUD.retrieve(pk=pk, owner=request.user)
         case "PUT":
             payload.update(
-                owner=request.user,
-                data=NoteCRUD.update(pk, data=request.data),
+                data=NoteCRUD.update(owner=request.user, pk=pk, data=request.data),
                 status=202,
             )
         case "DELETE":
-            payload.update(data=NoteCRUD.delete(pk), status=204)
-        case _:
-            raise MethodNotAllowed()
+            payload.update(data=NoteCRUD.delete(owner=request.user, pk=pk), status=204)
 
     return Response(**payload)
 
 
-@swagger_auto_schema(
-    methods=["POST", "DELETE"], request_body=CollaboratorSerializer
-)
+@swagger_auto_schema(methods=["POST", "DELETE"], request_body=CollaboratorSerializer)
 @decorators.api_view(["POST", "DELETE"])
 @decorators.authentication_classes([JwtAuthentication])
 def collaborator_view(request: Request, pk: int):
