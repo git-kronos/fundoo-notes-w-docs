@@ -17,7 +17,6 @@ print(obj.check_password("hello"))          # False
 ```
 """
 import factory
-from django.contrib.auth.hashers import make_password
 
 from apps.note.models import Note
 from apps.user.models import User
@@ -42,11 +41,16 @@ class UserFactory(factory.django.DjangoModelFactory):
     is_active = True
 
 
+class AdminFactory(UserFactory):
+    is_superuser = True
+    is_verified = True
+
+
 class NoteFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Note
 
     title = factory.Faker("sentence", nb_words=4)
-    body = factory.Faker("sentence", nb_words=10)
+    body = factory.Faker("sentence", nb_words=50)
     owner = factory.SubFactory(UserFactory)
     # owner = factory.RelatedFactory(AdminFactory, "owner", visited=True)

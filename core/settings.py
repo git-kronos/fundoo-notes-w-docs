@@ -174,6 +174,7 @@ REST_FRAMEWORK = {
 }
 
 # https://docs.djangoproject.com/en/4.2/topics/email/
+EMAIL_ACTIVE = Env.EMAIL_ACTIVE
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = Env.EMAIL_HOST
 EMAIL_USE_TLS = Env.EMAIL_TLS
@@ -182,7 +183,6 @@ EMAIL_HOST_USER = Env.EMAIL_USER
 EMAIL_HOST_PASSWORD = Env.EMAIL_PASSD
 
 BASE_URI = Env.BASE_URI
-
 
 LOG_CONFIG = {
     "format": "%(levelname)s [%(asctime)s] %(filename)s %(funcName)s:l-%(lineno)d %(message)s",

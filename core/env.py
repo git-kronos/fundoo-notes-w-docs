@@ -16,6 +16,7 @@ class Env:
     SECRET_KEY: Final[str] = getenv("SECRET_KEY", "")
     BASE_URI: Final[str] = getenv("BASE_URI", "http://localhost:8000")
     # email configs
+    EMAIL_ACTIVE: Final[bool] = bool(getenv('EMAIL_ACTIVE'))
     EMAIL_HOST: Final[str] = getenv("EMAIL_HOST", "smtp.gmail.com")
     EMAIL_PORT: Final[int] = int(getenv("EMAIL_PORT", 587))
     EMAIL_USER: Final[str] = getenv("EMAIL_USER", "")
