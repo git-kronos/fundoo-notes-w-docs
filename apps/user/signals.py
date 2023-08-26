@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from apps.user.thread import SendEmailThread
+from apps.user.tasks import send_user_verification_email_task  # noqa
 from apps.utils import JWT
 
 User = get_user_model()
@@ -27,5 +27,9 @@ def verify_email_id_on_registration(instance: User, **kwargs):  # type: ignore
             "url": settings.BASE_URI + reverse("user:verify", kwargs={"token": JWT.encode(**token_payload)}),
         }
         html_content = render_to_string("components/mail.html", context=context)
-        thread = SendEmailThread(recipient=instance.email, html_content=html_content)
-        thread.start()
+        # thread = SendEmailThread(recipient=instance.email, html_content=html_content)
+        # thread.start()
+        send_user_verification_email_task.delay(
+            recipient=instance.email,
+            html_content=html_content,
+        )

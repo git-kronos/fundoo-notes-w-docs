@@ -42,6 +42,8 @@ CORE_APPS = [
     "rest_framework",
     "drf_yasg",
     "django_browser_reload",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 CUSTOM_APPS = [
     "apps.note",
@@ -118,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 
@@ -188,10 +190,16 @@ LOG_CONFIG = {
     "format": "%(levelname)s [%(asctime)s] %(filename)s %(funcName)s:l-%(lineno)d %(message)s",
     "datefmt": "%Y-%m-%d %H:%M:%S",
     "level": logging.DEBUG,
-    "datefmt": "%Y-%m-%d %H:%M:%S",
     "filename": BASE_DIR / "logs" / "fundoo.log",
 }
 
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "django-cache"
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"

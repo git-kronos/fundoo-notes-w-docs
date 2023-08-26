@@ -14,6 +14,7 @@ command
 case $arg in
 init) pip install -r ./requirements.txt;;
 run) python manage.py runserver;;
+queue) celery -A core worker -l INFO -B;;
 app)
     read -p 'name: ' name
     read -p 'path: ' path
