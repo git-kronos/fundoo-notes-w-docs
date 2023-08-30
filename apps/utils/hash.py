@@ -14,26 +14,17 @@ class JWT:
     class Aud(str, Enum):
         REGISTER = "USER:register"
         LOGIN = "login"
-        VERIFY = 'user_verification'
+        VERIFY = "user_verification"
 
     @staticmethod
-    def encode(body: dict, aud: Aud, exp: datetime = None) -> str:
-        payload = {
-            "exp": exp or datetime.now() + EXP,
-            "aud": aud,
-            "data": body,
-        }
+    def encode(body: dict, aud: Aud, exp: datetime = None) -> str:  # type: ignore
+        payload = {"exp": exp or datetime.now() + EXP, "aud": aud, "data": body}
         return jwt.encode(payload, key=KEY)
 
     @staticmethod
     def decode(encoded_string: str, aud: Aud):
         try:
-            payload = jwt.decode(
-                encoded_string,
-                key=KEY,
-                algorithms=ALGORITHMS,
-                audience=aud,
-            )
+            payload = jwt.decode(encoded_string, key=KEY, algorithms=ALGORITHMS, audience=aud)
         except jwt.PyJWTError as e:
             raise APIException(detail=e.args[0])
         return payload

@@ -19,7 +19,7 @@ from drf_yasg import openapi
 from core.env import Env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 STATIC_DIR = BASE_DIR / "assets"
 STATIC_ROOT_DIR = BASE_DIR / "cdn" / "static"
 MEDIA_ROOT_DIR = BASE_DIR / "cdn" / "media"
@@ -203,3 +203,14 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+    }
+}
+
+CACHE_TTL = 60 * 60 * 2
+APPEND_SLASH = False

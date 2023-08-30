@@ -1,6 +1,7 @@
 @BASE_URL = http://localhost:8000/api/note
 @token = Bearer {{login_api.response.body.token}}
 @creds = {"email": "{{email}}", "password": "{{password}}"}
+@pk = 104
 ###
 
 # @name login_api
@@ -17,7 +18,7 @@ Authorization: {{token}}
 
 ###
 # @name note_retrieve
-GET {{BASE_URL}}/58
+GET {{BASE_URL}}/{{pk}}
 Authorization: {{token}}
 
 
@@ -31,7 +32,7 @@ Authorization: {{token}}
 
 ###
 # @name note_update
-PUT {{BASE_URL}}/57
+PUT {{BASE_URL}}/{{pk}}
 Authorization: {{token}}
 
 {"title": "note-title 57", "body": "note-body"}
@@ -39,12 +40,12 @@ Authorization: {{token}}
 
 ###
 # @name note_delete
-DELETE {{BASE_URL}}/55
+DELETE {{BASE_URL}}/{{pk}}
 Authorization: {{token}}
 
 ###
 # @name add_collaborator
-POST {{BASE_URL}}/58/collab
+POST {{BASE_URL}}/{{pk}}/collab
 Authorization: {{token}}
 
 {"collaborator": [2, 3]}
@@ -52,7 +53,7 @@ Authorization: {{token}}
 
 ###
 # @name remove_collaborator
-DELETE {{BASE_URL}}/58/collab
+DELETE {{BASE_URL}}/{{pk}}/collab
 Authorization: {{token}}
 
 {"collaborator": [2,3]}

@@ -1,10 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import authentication
-from rest_framework.exceptions import (
-    APIException,
-    AuthenticationFailed,
-    NotFound,
-)
+from rest_framework.exceptions import APIException, AuthenticationFailed, NotFound
 
 from apps.utils.hash import JWT
 
@@ -24,6 +20,6 @@ class JwtAuthentication(authentication.BaseAuthentication):
             user = model.objects.filter(**payload["data"]).first()
             if not user:
                 raise NotFound("No such user")
-        except (model.DoesNotExist, APIException, NotFound) as e:
-            raise AuthenticationFailed(detail=e.detail)
+        except (model.DoesNotExist, APIException, NotFound) as e:  # type: ignore
+            raise AuthenticationFailed(detail=e.detail)  # type: ignore
         return (user, token)

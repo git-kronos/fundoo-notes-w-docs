@@ -7,10 +7,7 @@ from apps.utils.factory import NoteFactory, UserFactory
 
 fake = Faker()
 
-get_headers = lambda user: {
-    "HTTP_AUTHORIZATION": f"Bearer {user.token}",
-    "content_type": "application/json",
-}
+get_headers = lambda user: {"HTTP_AUTHORIZATION": f"Bearer {user.token}", "content_type": "application/json"}
 
 sentenceN = lambda n: fake.sentence(nb_words=n)
 sentence = lambda: fake.sentence()
@@ -19,9 +16,7 @@ sentence = lambda: fake.sentence()
 class URLs:
     list = reverse("note:note-list")
     detail = lambda pk: reverse("note:note-detail", kwargs={"pk": pk})
-    collab = lambda user_id: reverse(
-        "note:note-collab", kwargs={"pk": user_id}
-    )
+    collab = lambda user_id: reverse("note:note-collab", kwargs={"pk": user_id})
     user = reverse("note:note-user")
 
 
@@ -41,7 +36,6 @@ class TestNote:
         response = client.post(URLs.list, data=payload, **get_headers(user))
         assert response.status_code == status_code
 
-    @pytest.mark.testing
     def test_note_list_api(self, client, user):
         """Test list note api with auth token"""
         NoteFactory.create_batch(2, owner=user)  # notes of current user
@@ -80,11 +74,8 @@ class TestNote:
     def test_note_update_with_auth(self, client, user):
         payload = {"title": sentenceN(5), "body": sentence()}
         obj = NoteFactory.create(owner=user)
-        response = client.put(
-            URLs.detail(obj.id), data=payload, **get_headers(user)
-        )
+        response = client.put(URLs.detail(obj.id), data=payload, **get_headers(user))
         post_action = Note.objects.get(pk=obj.pk)
-        print(response.json())
         result = response.json()["data"]
         assert obj.title != result["title"]
         assert post_action.title == result["title"]
@@ -119,21 +110,13 @@ class TestNote:
         note: Note = notes[0]
         users = [user.id for user in UserFactory.create_batch(size=1)]
 
-        assert (
-            note.collaborator.count() == 0
-        )  # collaborator count before api call
-        response = client.post(
-            URLs.collab(note.pk),
-            data={"collaborator": users},
-            **get_headers(user),
-        )
+        assert (note.collaborator.count() == 0)  # collaborator count before api call
+        response = client.post(URLs.collab(note.pk), data={"collaborator": users}, **get_headers(user))
         assert response.status_code == 202
         obj = Note.objects.get(pk=note.pk)
+        assert (obj.collaborator.count() == 1)  # collaborator count after api call
         assert (
-            obj.collaborator.count() == 1
-        )  # collaborator count after api call
-        assert (
-            obj.collaborator.first().id == users[0]
+                obj.collaborator.first().id == users[0]
         )  # checking if collaborator in db is same user that created above
 
     def test_collaborator_delete_api(self, client, user):
@@ -142,16 +125,8 @@ class TestNote:
         users = [user.id for user in UserFactory.create_batch(size=3)]
         note.collaborator.set(users)
 
-        assert (
-            note.collaborator.count() == 3
-        )  # collaborator count before api call
-        response = client.delete(
-            URLs.collab(note.pk),
-            data={"collaborator": users},
-            **get_headers(user),
-        )
+        assert (note.collaborator.count() == 3)  # collaborator count before api call
+        response = client.delete(URLs.collab(note.pk), data={"collaborator": users}, **get_headers(user))
         assert response.status_code == 202  # checking api call was successful
         obj = Note.objects.get(pk=note.pk)
-        assert (
-            obj.collaborator.count() == 0
-        )  # collaborator count after api call
+        assert (obj.collaborator.count() == 0)  # collaborator count after api call
