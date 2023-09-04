@@ -1,11 +1,11 @@
-# Project Douments
+# Project Documents
 
 ### Resources
 
 -   [Dev dependency](./requirements/dev.txt)
 -   [Base Requirement](./requirements/v1.txt)
 -   [Settings Keys](https://github.com/django/django/blob/main/django/conf/global_settings.py)
--   Refference
+-   Reference
     -   https://django-advanced-training.readthedocs.io/en/latest/
     -   https://saasitive.com/tutorial/django-celery-redis-postgres-docker-compose/
 
@@ -18,7 +18,7 @@
 -   [mbv(method based view)](./tools/docs/v1.md#v1step-1mbv)
 -   [serializations](./tools/docs/v1.md#v1step-2serialization)
 -   [jwt authentication(PyJwt)](./tools/docs/v1.md#v1step-3authentication)
--   [swagger documention](./tools/docs/v1.md#v1step-4swagger)
+-   [swagger documentation](./tools/docs/v1.md#v1step-4swagger)
 -   [Orm M2M](./tools/docs/v1.md#v1step-5m2m)
 -   [unittest - pytest](./tools/docs/v1.md#v1step-6apytest)
 -   unittest - django builtin unittest(will implement in next version)
@@ -34,3 +34,4 @@
 -   [custom-command](./tools/docs/v2.md#v2step-5custom-command)
 -   [queue/celery](./tools/docs/v2.md#v2step-6queue)
 -   [cache/redis](./tools/docs/v2.md#v2step-7cache)
+-   [raw-sql](./tools/docs/v2.md#v2step-8raw-sql)

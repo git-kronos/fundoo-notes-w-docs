@@ -1,12 +1,11 @@
-# from django.urls import path
+from django.urls import path
 
-from rest_framework import routers
-
-from apps.note.views import NoteModelViewSet
+from apps.note import views
 
 app_name = "note"
 
 
-router = routers.SimpleRouter(trailing_slash=False)
-router.register(prefix="", viewset=NoteModelViewSet, basename="note")
-urlpatterns = router.urls
+urlpatterns = [
+    path("", views.list_note),
+    path("<int:pk>", views.detail_note),
+]

@@ -1,13 +1,15 @@
 @BASE_URL = http://localhost:8000/api/note
 @token = Bearer {{login_api.response.body.token}}
-@creds = {"email": "{{email}}", "password": "{{password}}"}
-@pk = 104
-###
+@creds = { "email": "{{email}}", "password": "{{password}}" }
+@pk = 7
 
+
+###
 # @name login_api
 POST http://localhost:8000/api/login
 
 {{creds}}
+
 
 ###
 # @name note_list

@@ -1,31 +1,28 @@
-from functools import partial, wraps
+from functools import wraps
 
-from django.conf import settings
-from django.core.cache import cache
+from django.db import connection, transaction
 from django.http.request import QueryDict
-from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import action
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.response import Response
 
-from apps.note.models import Note
-from apps.note.serializers import (
-    CollaboratorSerializer,
-    NoteSerializer,
-    ProfileSerializer,
-)
-from apps.utils import (
-    ApiRenderer,
-    JwtAuthentication,
-    SerializedResponse,
-    StandardPagination,
-    collaborator_signals,
-)
+from apps.utils import JwtAuthentication
 
 
 # Create your views here.
+@transaction.atomic
+def custom_sql(sql: str, param: dict | None = None, many: bool = False, serialize=True):
+    def _serialize(cursor):
+        columns = [col[0] for col in cursor.description]
+        if not many:
+            data = cursor.fetchone()
+            return dict(zip(columns, data)) if data else None
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, param)
+        return None if not serialize else _serialize(cursor)
+
+
 def update_user_input(f):
     @wraps(f)
     def wrapper(request, *a, **kw):
@@ -40,57 +37,117 @@ def update_user_input(f):
     return wrapper
 
 
-# LINK - https://github.com/jazzband/django-redis#scan--delete-keys-in-bulk
-def delete_cache(f):
+class NoteCRUD:
+    _SELECT_QUERY_LIST = """
+    SELECT
+        n.id, n.title, n.body,
+        _user.first_name || ' ' || _user.last_name as "owner",
+        ARRAY (
+            SELECT
+                _user.first_name || ' ' || _user.last_name
+            FROM
+                note_collaborator nc
+            LEFT JOIN user_user _user ON nc.user_id = _user.id
+            WHERE
+                nc.note_id = n.id) AS collaborator
+        FROM
+            note n LEFT JOIN user_user _user ON n.owner_id = _user.id
+        WHERE
+            owner_id = %(owner_id)s
+            OR %(owner_id)s = ANY (ARRAY (
+                    SELECT
+                        nc.user_id
+                    FROM
+                        note_collaborator nc
+                    WHERE
+                        nc.note_id = n.id))
+            ORDER BY
+                n.id DESC;
     """
-    Delete all cache keys with the given prefix.
+    _SELECT_QUERY_RETRIEVE = """
+SELECT
+	n.id,
+	n.title,
+	n.body,
+	_user.first_name || ' ' || _user.last_name AS "owner",
+	ARRAY (
+		SELECT
+			_user.first_name || ' ' || _user.last_name
+		FROM
+			note_collaborator nc
+		LEFT JOIN user_user _user ON nc.user_id = _user.id
+	WHERE
+		nc.note_id = n.id) AS collaborator
+FROM
+	note n
+	LEFT JOIN user_user _user ON n.owner_id = _user.id
+WHERE (n.id = %(pk)s)
+	AND(n.owner_id = %(owner_id)s
+		OR %(owner_id)s = ANY (ARRAY (
+				SELECT
+					user_id FROM note_collaborator nc
+				WHERE
+					nc.note_id = n.id)));
     """
+    _UPDATE_QUERY = """
+UPDATE
+	note n
+SET
+	title = %(title)s,
+	body = %(body)s
+WHERE ( n.id = %(pk)s )
+	AND(n.owner_id = %(owner_id)s
+		OR %(owner_id)s = ANY (ARRAY (
+				SELECT
+					user_id FROM note_collaborator nc
+				WHERE
+					nc.note_id = n.id)))
+RETURNING
+	*;
+"""
 
-    key_prefix = "note-view"
-    pattern_str = "views.decorators.cache.cache_*.%(prefix)s.*.%(lang)s.%(tz)s"
+    @classmethod
+    def list(cls, user_id):
+        return custom_sql(sql=cls._SELECT_QUERY_LIST, param={"owner_id": user_id}, many=True), 200
 
-    def wrapper(request, *args, **kwargs):
-        response = f(request, *args, **kwargs)
-        if 200 <= response.status_code < 300:
-            pattern = pattern_str % {"prefix": key_prefix, "lang": settings.LANGUAGE_CODE, "tz": settings.TIME_ZONE}
-            cache.delete(pattern)
-        return response
+    @classmethod
+    def retrieve(cls, owner_id, pk):
+        result = custom_sql(sql=cls._SELECT_QUERY_RETRIEVE, param={"owner_id": owner_id, "pk": pk})
+        return (result, 200) if result else ({"message": "Note not found"}, 404)
 
-    return wrapper
+    @staticmethod
+    def create(data):
+        query = "insert into note (title, body, owner_id) values (%(title)s, %(body)s, %(owner)s) RETURNING *"
+        return custom_sql(sql=query, param=data), 201
+
+    @staticmethod
+    def destroy(owner_id, pk):
+        query = """
+        DELETE FROM note_collaborator WHERE note_id=%(pk)s;
+        DELETE FROM note WHERE owner_id = %(owner_id)s and id=%(pk)s;
+        """
+        return custom_sql(sql=query, param={"owner_id": owner_id, "pk": pk}, serialize=False), 204
+
+    @classmethod
+    def update(cls, owner_id, pk, payload):
+        return custom_sql(sql=cls._UPDATE_QUERY, param={"owner_id": owner_id, "pk": pk, **payload}), 202
 
 
-cache_partial = partial(cache_page, key_prefix="note-view")
+@api_view(["GET", "POST"])
+@authentication_classes([JwtAuthentication])
+@update_user_input
+def list_note(request):
+    if request.method == "POST":
+        return Response(*NoteCRUD.create(request.data))
+    return Response(*NoteCRUD.list(user_id=request.user.id))
 
 
-@method_decorator(cache_partial(settings.CACHE_TTL), name="list")
-@method_decorator(cache_partial(settings.CACHE_TTL), name="retrieve")
-@method_decorator([update_user_input, delete_cache], name="create")
-@method_decorator([update_user_input, delete_cache], name="update")
-@method_decorator([update_user_input, delete_cache], name="destroy")
-class NoteModelViewSet(ModelViewSet):
-    authentication_classes = (JwtAuthentication,)
-    renderer_classes = (ApiRenderer,)
-    pagination_class = StandardPagination
-    lookup_field = "pk"
-    serializer_class = NoteSerializer
-    collab_serializer_class = CollaboratorSerializer
-
-    def get_queryset(self):
-        return Note.objects.owner_notes(owner=self.request.user)
-
-    @swagger_auto_schema(method="GET", responses={200: ProfileSerializer()})
-    @action(methods=["GET"], detail=False, url_name="user")
-    def user_notes(self, request):
-        sr = SerializedResponse(ProfileSerializer, request.user)
-        return sr.get()
-
-    @swagger_auto_schema(methods=["POST", "DELETE"], responses={202: CollaboratorSerializer()})
-    @action(detail=True, methods=["POST", "DELETE"], url_path="collab", url_name="collab")
-    def update_collab(self, request, pk=None):
-        actions = {"POST": "add", "DELETE": "remove"}
-        action = actions.get(request.method)
-        obj = get_object_or_404(Note, pk=pk)
-        sr = SerializedResponse(self.collab_serializer_class, obj)
-        response = sr.put(request.data, context={"action": action})
-        collaborator_signals.send(sender=self.__class__, payload={"data": response.data, "action": action})
-        return response
+@api_view(["GET", "PUT", "DELETE"])
+@authentication_classes([JwtAuthentication])
+@update_user_input
+def detail_note(request, pk=None):
+    if request.method == "DELETE":
+        return Response(*NoteCRUD.destroy(owner_id=request.user.pk, pk=pk))
+    elif request.method == "PUT":
+        return Response(*NoteCRUD.update(owner_id=request.user.pk, pk=pk, payload=request.data))
+    return Response(*NoteCRUD.retrieve(request.user.pk, pk))
